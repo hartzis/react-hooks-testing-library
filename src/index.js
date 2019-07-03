@@ -3,7 +3,7 @@ import { act, create } from 'react-test-renderer'
 
 function TestHook({ callback, hookProps, onError, children }) {
   try {
-    children(callback(hookProps))
+    children(callback(...hookProps))
   } catch (err) {
     if (err.then) {
       throw err
@@ -51,9 +51,9 @@ function resultContainer() {
   }
 }
 
-function renderHook(callback, { initialProps, wrapper } = {}) {
+function renderHook(callback, { wrapper } = {}) {
   const { result, setValue, setError, addResolver } = resultContainer()
-  const hookProps = { current: initialProps }
+  const hookProps = { current: [] }
 
   const wrapUiIfNeeded = (innerElement) =>
     wrapper ? React.createElement(wrapper, null, innerElement) : innerElement
@@ -76,8 +76,8 @@ function renderHook(callback, { initialProps, wrapper } = {}) {
   return {
     result,
     waitForNextUpdate: () => new Promise((resolve) => addResolver(resolve)),
-    rerender: (newProps = hookProps.current) => {
-      hookProps.current = newProps
+    rerender: (...newProps) => {
+      hookProps.current = newProps.length ? newProps : hookProps.current
       act(() => {
         update(toRender())
       })
